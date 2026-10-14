@@ -1,0 +1,7 @@
+{
+  "name": "doubt-survey",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "استبيان الشك للشباب — صفحة ثابتة + دالتين serverless على Vercel"
+}
