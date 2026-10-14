@@ -1,12 +1,10 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
+<html lang="ar" dir="rtl"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>نتايج استبيان الشك — لايف</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&amp;display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#f6f5f2; --card:#ffffff; --ink:#1d2430; --muted:#646f7e;
@@ -53,8 +51,12 @@
   .stat{display:flex; gap:12px; flex-wrap:wrap; margin-bottom:6px}
   .stat > div{flex:1 1 42%; background:var(--accent-soft); border-radius:12px; padding:12px 14px}
   .stat b{display:block; font-size:1.8rem; line-height:1.3}
+  .secthead{display:flex; align-items:center; gap:10px; margin:22px 0 12px}
+  .secthead span{font-size:.95rem; font-weight:600; color:var(--accent); background:var(--accent-soft);
+                 border-radius:99px; padding:4px 14px; white-space:nowrap}
+  .secthead i{flex:1; height:1px; background:var(--line); display:block}
   .qstat{border-top:1px solid var(--line); padding-top:14px; margin-top:14px}
-  .qstat:first-of-type{border-top:none; padding-top:0; margin-top:0}
+  .qstat.first{border-top:none; padding-top:0; margin-top:0}
   .qstat .title{font-weight:600; margin-bottom:10px; font-size:.97rem}
   ul{margin:0 0 12px; padding-inline-start:20px}
   li{margin-bottom:6px}
@@ -81,8 +83,8 @@
   <div class="card">
     <h1>نتايج استبيان الشك</h1>
     <p class="theme">سنة على سنة · مؤتمر الشباب ٣ — ٢٠٢٦</p>
-    <p class="sub"><span class="dot"></span><span id="liveNote">بحمّل النتايج…</span></p>
-    <div id="errBox"></div>
+    <p class="sub"><span class="dot"></span><span id="liveNote">التحديث واقف</span></p>
+    <div id="errBox"><div class="err">مفيش اتصال بالسيرفر دلوقتي.</div></div>
     <div class="stat" id="topStats"></div>
     <h3>توزيع المستويات</h3>
     <div id="levels"></div>
@@ -104,44 +106,47 @@
 (function(){
   "use strict";
 
+  var SECT = ["الشك في الإيمان", "الثقة في الناس والمعلومة"];
+
   var Q = [
-    { s:"صاحبك سألك سؤال عن الإيمان ومعرفتش ترد عليه.", k:"أسئلة من بَرّه",
+    { c:0, s:"سؤال عن الإيمان معرفتش ترد عليه.", k:"أسئلة من بَرّه",
       o:["بقول مش عارف وبدوّر","بضايق وبسأل حد فاهم","بحس إن إيماني اهتزّ","بتجنّب الكلام خالص"] },
-    { s:"بتصلي وحاسس إن مفيش حد سامع.", k:"جفاف الصلاة",
+    { c:0, s:"بتصلي وحاسس إن مفيش حد سامع.", k:"جفاف الصلاة",
       o:["بكمّل وعارف إنه إحساس","بضايق بس بكمّل","بقلّل صلاتي","بطّلت أصلي تقريباً"] },
-    { s:"طلبت حاجة من ربنا من زمان وما جتش.", k:"الصلاة من غير إجابة",
-      o:["واثق إنه عارف الأحسن","بسأل ليه وبرجع أسلّم","حاسس إنه مش مهتم بيا","مش مصدّق إنه بيسمع"] },
-    { s:"شفت حد كويس بيتألم أو مصيبة لحد ما يستاهلش.", k:"مشكلة الألم والشر",
+    { c:0, s:"حد كويس بيتألم أو مصيبة لحد ما يستاهلش.", k:"مشكلة الألم والشر",
       o:["بوجع من غير ما تهتزّ ثقتي","بسأل أسئلة صعبة","السؤال واقف قدامي","شايف إن مفيش عدل"] },
-    { s:"كلام أو فيديو بيشكّك في الكتاب المقدس.", k:"المحتوى اللي بيشكّك",
+    { c:0, s:"كلام أو فيديو بيشكّك في الكتاب المقدس.", k:"المحتوى اللي بيشكّك",
       o:["بدوّر على رد محترم","بتوتر وبسأل حد","كلامه بيبان منطقي أكتر","اتهزّيت فعلاً"] },
-    { s:"شفت خادم أو حد كبير بيعمل حاجة غلط.", k:"عثرة من الناس",
+    { c:0, s:"خادم أو حد كبير بيعمل حاجة غلط.", k:"عثرة من الناس",
       o:["بفرّق بين الشخص والإيمان","بضايق بس بكمّل","بدأت أشك إنها شكليات","بعدت عن الكنيسة"] },
-    { s:"وإنت في الكنيسة أو الاجتماع.", k:"الإحساس في الكنيسة",
-      o:["في مكاني وبستفيد","ساعات وساعات","بعمل حركات من غير معنى","بروح عشان الناس وجوايا فاضي"] },
-    { s:"في تعليم أو عقيدة مش مقتنع بيها.", k:"أسئلة العقيدة",
-      o:["بسأل لحد ما أفهم","بسيبها وبكمّل","بخبّي وبعمل نفسي موافق","شايف إن الكلام كله ممكن يكون غلط"] },
-    { s:"لما تيجي تعترف أو تتناول.", k:"الأسرار والممارسة",
+    { c:0, s:"لما تيجي تعترف أو تتناول.", k:"الأسرار والممارسة",
       o:["بروح بثقة","بروح من غير إحساس قوي","عادة مالهاش لازمة","بطّلت أروح"] },
-    { s:"أديان تانية وناس كويسة مش مسيحيين.", k:"نسبية الحقيقة",
-      o:["مش بيلخبطني","بسأل وبوصل لإجابة","محدش يقدر يتأكد مين صح","الدين عادات وتربية"] },
-    { s:"حد سألك: إنت ليه مسيحي؟", k:"إيمان شخصي ولا موروث",
+    { c:0, s:"حد سألك: إنت ليه مسيحي؟", k:"إيمان شخصي ولا موروث",
       o:["عندي إجابة شخصية","بردّ بس ردّي ناقص","اتربّيت كده بس","بتكسف وبغيّر الموضوع"] },
-    { s:"فترة حاسس فيها إن ربنا بعيد.", k:"الغياب والبُعد",
-      o:["فترات بتيجي وبتروح","اتكلمت مع حد وساعدني","الفترة طوّلت","بعيد من زمان ومش لاقي طريق"] },
-    { s:"خطية متكررة قاعد تقع فيها.", k:"التكرار واليأس",
-      o:["بقوم وبكمّل","بتعب بس بحاول","حاسس إن ربنا زهق مني","بعدت خالص بسببها"] },
-    { s:"لو حد عرف إنك بتشك.", k:"إخفاء الشك",
+    { c:0, s:"لو حد عرف إنك بتشك.", k:"إخفاء الشك",
       o:["بتكلم بصراحة","بتكلم مع واحد بس","بخبّي تماماً","بتمثّل قدام الكل"] },
-    { s:"لما تفكر في الموت والأبدية.", k:"الرجاء والأبدية",
-      o:["عندي رجاء","بخاف وبرجع أهدا","بتجنّب التفكير","مش متأكد إن في حاجة بعدها"] }
+
+    { c:1, s:"خبر منتشر على السوشيال ميديا.", k:"تصديق الأخبار",
+      o:["بفحصه من مصدر تاني","بصدّقه لو ناشره حد أعرفه","ورا كل خبر حد مستفيد","الإعلام كله كذب"] },
+    { c:1, s:"صاحبك حكالك على مشكلة حصلت معاه.", k:"تصديق الأصحاب",
+      o:["بصدّقه وعارف إن في طرف تاني","بصدّقه وبسأل تفاصيل","بفترض إنه بيخبّي جزء","بفترض إنه بيكذب"] },
+    { c:1, s:"حد عرض عليك مساعدة من غير ما تطلب.", k:"نوايا الناس",
+      o:["بشكره وبقبل","بستغرب بس بقبل","بدوّر هو مستفيد إيه","بتأكد إن وراها حاجة وبرفض"] },
+    { c:1, s:"لما تفكر في أقرب الناس ليك.", k:"توقّع الغدر من المقربين",
+      o:["واثق فيهم","بييجي في بالي أحياناً","مستني اليوم اللي هيخذلوني فيه","أي حد يقرب هيغدر بيا"] },
+    { c:1, s:"تعليق عابر عليك أو على شغلك.", k:"تفسير الكلام سلبياً",
+      o:["باخده عادي","بفكّر فيه شوية","بحلّله وبطلع منه معنى وحش","ورا أي كلمة إهانة مقصودة"] },
+    { c:1, s:"حد غلط في حقك واعتذرلك.", k:"المسامحة والضغينة",
+      o:["بسامح وبطوي الصفحة","بسامح بس بفتكر","بشك في صدق اعتذاره","مش بسامح وهيعملها تاني"] },
+    { c:1, s:"إحساس إن الناس بتتكلم عليك أو بتراقبك.", k:"إحساس المراقبة",
+      o:["مش بيجيلي","ساعات وبعدّي","كتير وبفضل مفكّر","على طول وبيأثر على نومي"] }
   ];
 
   var LEVELS = [
-    { name:"إيمان مستقر",    color:"var(--lv1)" },
-    { name:"أسئلة طبيعية",   color:"var(--lv2)" },
+    { name:"ثقة متوازنة",   color:"var(--lv1)" },
+    { name:"أسئلة طبيعية",  color:"var(--lv2)" },
     { name:"شك واخد مساحة", color:"var(--lv3)" },
-    { name:"أزمة إيمان",     color:"var(--lv4)" }
+    { name:"شك تقيل",       color:"var(--lv4)" }
   ];
 
   var AR = ["٠","١","٢","٣","٤","٥","٦","٧","٨","٩"];
@@ -181,6 +186,14 @@
     d.appendChild(b); d.appendChild(s); return d;
   }
 
+  function sectHead(text){
+    var h = document.createElement("div"); h.className = "secthead";
+    var s = document.createElement("span"); s.textContent = text;
+    var i1 = document.createElement("i");
+    h.appendChild(s); h.appendChild(i1);
+    return h;
+  }
+
   function render(agg){
     var n = agg.n || 0;
     var top = el("topStats"); top.textContent = "";
@@ -197,8 +210,18 @@
     var qc = agg.q || Q.map(function(){ return [0,0,0,0]; });
     var avg = (agg.sum || 0) / n;
 
+    // متوسط كل قسم من ٣٠
+    var sumA = 0, sumB = 0;
+    for(var i=0;i<Q.length;i++){
+      var s = 0;
+      for(var j=0;j<4;j++) s += (qc[i] ? qc[i][j]*j : 0);
+      if(Q[i].c === 0) sumA += s; else sumB += s;
+    }
+
     top.appendChild(stat("عدد اللي جاوبوا", num(n)));
     top.appendChild(stat("متوسط الدرجة من ٤٥", dec(avg)));
+    top.appendChild(stat("متوسط الشك الإيماني من ٢٤", dec(sumA/n)));
+    top.appendChild(stat("متوسط الثقة في الناس من ٢١", dec(sumB/n)));
 
     var lb = el("levels"); lb.textContent = "";
     LEVELS.forEach(function(L, i){ lb.appendChild(bar(L.name, lv[i]||0, n, L.color)); });
@@ -207,34 +230,48 @@
     var pctHigh = Math.round(high/n*100);
     var avgQ = Q.map(function(q, i){
       var s = 0; for(var j=0;j<4;j++) s += qc[i][j]*j;
-      return { k:q.k, avg:s/n };
+      return { k:q.k, c:q.c, avg:s/n };
     }).sort(function(a,b){ return b.avg - a.avg; });
 
     var c = el("conclusion"); c.textContent = "";
     var p1 = document.createElement("p");
-    if(pctHigh >= 60)      p1.textContent = "معظم اللي جاوبوا (" + num(pctHigh) + "٪) الشك واخد عندهم مساحة كبيرة أو في أزمة إيمان. دي مش أرقام تتقال قدام الناس، دي دعوة لمساحة مفتوحة للأسئلة ومتابعة فردية هادية.";
+    if(pctHigh >= 60)      p1.textContent = "معظم اللي جاوبوا (" + num(pctHigh) + "٪) الشك واخد عندهم مساحة كبيرة. دي مش أرقام تتقال قدام الناس، دي دعوة لمساحة مفتوحة للأسئلة ومتابعة فردية هادية.";
     else if(pctHigh >= 35) p1.textContent = "حوالي " + num(pctHigh) + "٪ من اللي جاوبوا الشك واخد عندهم مساحة كبيرة. نسبة مش قليلة، ومحتاجة اجتماع بيفتح باب السؤال بدل ما يقفله.";
-    else                   p1.textContent = "معظم اللي جاوبوا عندهم إيمان مستقر أو أسئلة طبيعية، و" + num(pctHigh) + "٪ بس في المستويات الأعلى. الصورة العامة مطمّنة، مع الانتباه للقلة دي.";
+    else                   p1.textContent = "معظم اللي جاوبوا عندهم ثقة متوازنة أو أسئلة طبيعية، و" + num(pctHigh) + "٪ بس في المستويات الأعلى.";
     c.appendChild(p1);
 
     var p2 = document.createElement("p");
-    p2.textContent = "أكتر المواضيع اللي بتشكّك المجموعة:";
+    var pa = (sumA/n)/24, pb = (sumB/n)/21;
+    function pc(x){ return num(Math.round(x*100)) + "٪"; }
+    if(Math.abs(pa - pb) < 0.08)
+      p2.textContent = "القسمين متقاربين (" + pc(pa) + " مقابل " + pc(pb) + " من أقصى درجة لكل قسم)، يعني مفيش ناحية طاغية في المجموعة.";
+    else if(pa > pb)
+      p2.textContent = "الشك الإيماني أعلى من الشك في الناس (" + pc(pa) + " مقابل " + pc(pb) + "). المجموعة محتاجة مساحة أسئلة ومحتوى يرد على الشبهات أكتر من أي حاجة تانية.";
+    else
+      p2.textContent = "الشك في الناس أعلى من الشك الإيماني (" + pc(pb) + " مقابل " + pc(pa) + "). المجموعة عندها صعوبة في الثقة، وده بيتبني بالعلاقة والوقت مش بالتعليم.";
     c.appendChild(p2);
+
+    var p3 = document.createElement("p");
+    p3.textContent = "أكتر المواضيع اللي بتشكّك المجموعة:";
+    c.appendChild(p3);
     var ul = document.createElement("ul");
     avgQ.slice(0,3).forEach(function(x){
       var li = document.createElement("li");
-      li.textContent = x.k + " — متوسط " + dec(x.avg) + " من ٣";
+      li.textContent = x.k + " (" + SECT[x.c] + ") — متوسط " + dec(x.avg) + " من ٣";
       ul.appendChild(li);
     });
     c.appendChild(ul);
-    var p3 = document.createElement("p");
-    p3.className = "sub";
-    p3.textContent = "أقل موضوع بيشكّكهم: " + avgQ[avgQ.length-1].k + ".";
-    c.appendChild(p3);
+    var p4 = document.createElement("p");
+    p4.className = "sub";
+    p4.textContent = "أقل موضوع: " + avgQ[avgQ.length-1].k + ".";
+    c.appendChild(p4);
 
     var pq = el("perQ"); pq.textContent = "";
+    var lastC = -1;
     Q.forEach(function(q, i){
-      var box = document.createElement("div"); box.className = "qstat";
+      if(q.c !== lastC){ pq.appendChild(sectHead(SECT[q.c])); lastC = q.c; }
+      var box = document.createElement("div");
+      box.className = "qstat" + (i === 0 ? " first" : "");
       var t = document.createElement("div"); t.className = "title";
       t.textContent = num(i+1) + ". " + q.s;
       box.appendChild(t);
@@ -273,5 +310,6 @@
   setInterval(pull, 5000);
 })();
 </script>
-</body>
-</html>
+
+
+</body></html>
