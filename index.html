@@ -275,7 +275,9 @@
     var p = Math.round((cur)/Q.length*100);
     el("pct").textContent = num(p) + "٪";
     el("prog").style.width = p + "%";
-    el("sect").textContent = SECT[q.c];
+    var sec = el("sect");
+if(sec) sec.textContent = SECT[q.c];
+
     el("qtext").textContent = q.s;
     var box = el("opts");
     box.textContent = "";
